@@ -3,7 +3,6 @@ import {generateToken} from '../lib/utils.js'
 import bcrypt from 'bcryptjs'
 
 export const signup = async (req,res)=>{
-    console.log("Signup endpoint hit");
     const {email,password} = req.body;
     try{
         if(!email || !password){
@@ -33,5 +32,29 @@ export const signup = async (req,res)=>{
     }catch(error){
         console.log("error in signup controller",error.message);
         return res.status(500).json({message:"Internal server Error"});
+    }
+}
+
+export const login = async (req,res) => {
+    const {email,password} = req.body;
+    try{
+        const user = await User.findOne({email});
+
+        if(!user){
+            return res.status(400).json({message:"Invalid credentials"})
+        }
+        const isPassword = await bcrypt.compare(password,user.password);
+        if(!isPassword){
+            return res.status(400).json({message:"Invalid credentials"})
+        }
+        generateToken(user._id,res)
+        return res.status(200).json({
+            _id:user._id,
+            email:user.email,
+        })    
+
+    }catch(error){
+        console.log('Error in login controller',error.message);
+        return res.status(500).json({message:"internal server error"});
     }
 }
