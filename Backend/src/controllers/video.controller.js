@@ -66,3 +66,29 @@ export const getAllVideos = async (req,res) => {
         res.status(500).json({error:err.message});
     }
 }
+
+//likeing the video
+
+export const likeVideo = async (req,res) => {
+    try{
+        const videoId = req.params.videoId;
+        const userId = req.user.id;
+
+        const video = await Video.findById(videoId);
+        if(!video){
+            return res.status(404).json({error:'Video not found'});
+        }
+
+        if(video.likedBy.includes(userId)){
+            return res.status(200).json({message:'already liked',likeCount:video.likeCount});
+        }
+
+        video.likedBy.push(userId);
+        video.likeCount +=1;
+        await video.save();
+
+        res.json({message:'Video liked',likeCount:video.likeCount});
+    }catch(err){
+        res.status(500).json({error:err.message});
+    }
+}
