@@ -1,7 +1,8 @@
-import { uploadFile} from '../lib/s3.js'
+import { uploadFile,getSignedUrl} from '../lib/s3.js'
 import { generateThumbnail } from '../lib/generateThumbnail.js'
 import Video from '../models/video.model.js'
 import { v4 as uuidv4 } from 'uuid'
+
 
 export const uploadVideo = async (req,res) => {
     try{
@@ -39,6 +40,28 @@ export const uploadVideo = async (req,res) => {
         });
         await video.save();
         res.status(201).json({message:'video uploaded',video});
+    }catch(err){
+        res.status(500).json({error:err.message});
+    }
+}
+
+// get all videos
+export const getAllVideos = async (req,res) => {
+    try{
+        const videos = await Video.find().sort({createdAt: -1});//latest video
+
+        const videosWithUrls = videos.map((video)=>({
+            _id:video._id,
+            title: video.title,
+            description:video.description,
+            videoUrl:video.s3Key ? getSignedUrl(video.s3Key) : null,
+            thumbnailUrl:video.thumbnailKey ? getSignedUrl(video.thumbnailKey) : null,
+            likeCount:video.likeCount || 0,
+            createdAt:video.createdAt,
+        }));
+
+        res.json(videosWithUrls);
+
     }catch(err){
         res.status(500).json({error:err.message});
     }
