@@ -5,6 +5,7 @@ const videoSchema = new mongoose.Schema({
     title:String,
     description:String,
     s3Key:String,
+    thumbnailKey:String,
     createdAt:{type:Date,default:Date.now},
 })
 
